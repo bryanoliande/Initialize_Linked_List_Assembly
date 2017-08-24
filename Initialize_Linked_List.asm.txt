@@ -1,0 +1,76 @@
+Comment !
+Program:   Initialize_Linked_list.asm
+ Student:     Bryan Oliande
+ Date Due:        5/05/15
+ Class:       CSCI 241
+ Instructor:  Mr. Ding
+Description: 
+	This is an enhancement for List.asm on 10.4.5 Linked List section. 
+    Consider how to make use of the last node and display its data potion just 
+     the same as others? Using macro to generate exactly 15 nodes, 
+    initializing the list data with the first 15 Fibonacci numbers. 
+!
+
+INCLUDE Irvine32.inc
+INCLUDE Macros.inc
+
+ListNode STRUCT
+  NodeData DWORD ?
+  NextPtr  DWORD ?
+ListNode ENDS
+
+TotalNodeCount = 15
+NULL = 0
+Counter = 0
+Temp1 = 1 ;fib(1) = 1
+Temp2 = 0	;fib(2) = fib(1) + 0
+PlaceHolder = 0
+
+.data
+LinkedList LABEL PTR ListNode
+REPT TotalNodeCount
+	Counter = Counter + 1
+	
+	;generating the next fib number
+	Temp1 = Temp1 + Temp2	
+
+	;Creating the node
+	IF Counter EQ 15
+		ListNode <Temp1,0>	;create the last node
+	ELSE
+		ListNode <Temp1, ($ + Counter * SIZEOF ListNode)>
+			;XCHG Temp1,Temp2
+		PlaceHolder = Temp1
+		Temp1 = Temp2
+		Temp2 = PlaceHolder
+	ENDIF
+ENDM
+
+.code
+main PROC
+	mov  esi,OFFSET LinkedList
+
+; Display the integers in the NodeData members.
+NextNode:
+	; Check for the tail node.
+	mov  eax,(ListNode PTR [esi]).NextPtr
+	cmp  eax,NULL
+	je   quit
+
+	; Display the node data.
+	mov  eax,(ListNode PTR [esi]).NodeData
+	call WriteDec
+	mWriteSpace
+
+	; Get pointer to next node.
+	mov  esi,(ListNode PTR [esi]).NextPtr
+	jmp  NextNode
+
+quit:
+	mov  eax,(ListNode PTR [esi]).NodeData	;write the last node
+	call WriteDec
+	call crlf
+	call waitMsg
+	exit
+main ENDP
+END main
